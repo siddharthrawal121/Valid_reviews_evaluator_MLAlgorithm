@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 12 15:38:15 2022
+Created on Fri Oct 14 15:38:15 2022
 
 @author: siddharth rawal
 """
@@ -8,13 +8,16 @@ Created on Wed Oct 12 15:38:15 2022
 import pandas as pd
 import re
 import nltk
+from timeit import default_timer as time
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem import WordNetLemmatizer 
 from sklearn.naive_bayes import MultinomialNB
-from  sklearn.metrics  import accuracy_score
+from sklearn.metrics  import accuracy_score
+from sklearn.ensemble import RandomForestClassifier
+
 
 
 
@@ -62,9 +65,25 @@ def MultinomialNBalgo(train_dt, test_dt):
     predicted = clf.predict(test_vectors)
     print("Accuracy: ", (accuracy_score(y_test,predicted)*100))
     
+def RandomForestClass(train_dt, test_dt):
+    
+     X_train = data_train['text'].values
+     y_train = data_train['label'].values
+     X_test = data_test['text'].values
+     y_test = data_test['label'].values
+     
+     vectorizer = TfidfVectorizer()
+     train_vectors = vectorizer.fit_transform(X_train)
+     test_vectors = vectorizer.transform(X_test)
+     
+     clf = RandomForestClassifier(n_estimators = 10, criterion = "entropy")
+     clf.fit(train_vectors, y_train)
+     predicted = clf.predict(test_vectors)
+     print("Accuracy: ", (accuracy_score(y_test,predicted)*100))
+     
 ## Main function 
 if __name__ == '__main__':
-
+    start_time = time()
     data_train = pd.read_csv('train.csv')
     data_train = data_train.drop(data_train.columns[[1, 2]], axis=1)
     preporocess_data(data_train)   
@@ -72,16 +91,14 @@ if __name__ == '__main__':
     data_test = data_test.drop(data_test.columns[[1, 2]], axis=1)
     preporocess_data(data_test)   
     data_testlabel = pd.read_csv('labels.csv')
-
     data_test = data_test.merge(data_testlabel, on ="id", how = 'inner') 
-    
-    MultinomialNBalgo(data_train, data_test)
-    
-#data_train = pd.concat([data_train, data_test])
-#preporocess_data(data_train)   
 
-#data_train.to_csv("preprocess_train.csv")
-#print(data_train.head())
+    #MultinomialNBalgo(data_train, data_test)
+    #print("Elapsed Time: ",time() - start_time, "seconds")
+    
+    RandomForestClass(data_train, data_test)
+    print("Elapsed Time: ",time() - start_time, "seconds")
+    
 
 
 
